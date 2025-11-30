@@ -2,5 +2,7 @@
 2. Launch main.py
 3. Enjoy!
 
-Roshan is working on the python version  
-ssdcat is working on website version
+## Credits
+
+* roshan (RoshanGmaer7791) - Python version Maker
+* sddcat - Website version maker
