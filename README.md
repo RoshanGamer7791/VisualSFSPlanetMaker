@@ -2,4 +2,5 @@
 2. Launch main.py
 3. Enjoy!
 
-Roshan and sddcat is working on this
+Roshan is working on the python version
+ssdcat is working on the web version
