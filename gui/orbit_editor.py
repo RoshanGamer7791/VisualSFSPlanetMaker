@@ -1,61 +1,56 @@
 import customtkinter as ctk
-import tkinter as tk
 
 class OrbitEditor:
     def __init__(self, parent, planet_data):
         self.parent = parent
         self.planet_data = planet_data
-        self.frame = ctk.CTkFrame(self.parent)
+
+        self.frame = ctk.CTkFrame(parent)
         self.frame.pack(fill="both", expand=True)
-        self.entries = {}
+
+        self.vars = {}
         self.build_ui()
+
+    # Helper to create a label + entry pair
+    def add_field(self, label, key, default, row):
+        ctk.CTkLabel(self.frame, text=label).grid(
+            row=row, column=0, padx=10, pady=6, sticky="w"
+        )
+        var = ctk.StringVar(value=str(default))
+        entry = ctk.CTkEntry(self.frame, textvariable=var, width=200)
+        entry.grid(row=row, column=1, padx=10, pady=6, sticky="w")
+        self.vars[key] = var
 
     def build_ui(self):
         orbit = self.planet_data.get("ORBIT_DATA", {})
 
-        # Parent Star
-        self.parent_var = tk.StringVar(value=orbit.get("parent", "Sun"))
-        tk.Label(self.frame, text="Parent").grid(row=0, column=0, sticky="w")
-        tk.Entry(self.frame, textvariable=self.parent_var).grid(row=0, column=1)
-
-        # Semi-major Axis
-        self.sma_var = tk.StringVar(value=str(orbit.get("semiMajorAxis", 0)))
-        tk.Label(self.frame, text="Semi-Major Axis").grid(row=1, column=0, sticky="w")
-        tk.Entry(self.frame, textvariable=self.sma_var).grid(row=1, column=1)
-
-        # Eccentricity
-        self.ecc_var = tk.StringVar(value=str(orbit.get("eccentricity", 0)))
-        tk.Label(self.frame, text="Eccentricity").grid(row=2, column=0, sticky="w")
-        tk.Entry(self.frame, textvariable=self.ecc_var).grid(row=2, column=1)
-
-        # Argument of Periapsis
-        self.argp_var = tk.StringVar(value=str(orbit.get("argumentOfPeriapsis", 0)))
-        tk.Label(self.frame, text="Argument of Periapsis").grid(row=3, column=0, sticky="w")
-        tk.Entry(self.frame, textvariable=self.argp_var).grid(row=3, column=1)
-
-        # Direction
-        self.direction_var = tk.StringVar(value=str(orbit.get("direction", 1)))
-        tk.Label(self.frame, text="Direction").grid(row=4, column=0, sticky="w")
-        tk.Entry(self.frame, textvariable=self.direction_var).grid(row=4, column=1)
-
+        self.add_field("Parent Body", "parent", orbit.get("parent", "Sun"), 0)
+        self.add_field("Semi-Major Axis", "semiMajorAxis", orbit.get("semiMajorAxis", 0), 1)
+        self.add_field("Eccentricity", "eccentricity", orbit.get("eccentricity", 0), 2)
+        self.add_field("Argument of Periapsis", "argumentOfPeriapsis",
+                       orbit.get("argumentOfPeriapsis", 0), 3)
+        self.add_field("Direction (1=prograde, -1=retrograde)", "direction",
+                       orbit.get("direction", 1), 4)
+        self.add_field("Inclination", "inclination", orbit.get("inclination", 0), 5)
 
     def save(self):
         orbit = self.planet_data.setdefault("ORBIT_DATA", {})
-        orbit["parent"] = self.entries["parent"].get()
-        orbit["semiMajorAxis"] = float(self.entries["semiMajorAxis"].get())
-        orbit["eccentricity"] = float(self.entries["eccentricity"].get())
-        orbit["argumentOfPeriapsis"] = float(self.entries["argumentOfPeriapsis"].get())
-        orbit["direction"] = int(self.entries["direction"].get())
-        orbit["multiplierSOI"] = float(self.entries["multiplierSOI"].get())
+
+        orbit["parent"] = self.vars["parent"].get()
+        orbit["semiMajorAxis"] = float(self.vars["semiMajorAxis"].get() or 0)
+        orbit["eccentricity"] = float(self.vars["eccentricity"].get() or 0)
+        orbit["argumentOfPeriapsis"] = float(self.vars["argumentOfPeriapsis"].get() or 0)
+        orbit["direction"] = int(self.vars["direction"].get() or 1)
+        orbit["inclination"] = float(self.vars["inclination"].get() or 0)
 
     def get_data(self):
         return {
             "ORBIT_DATA": {
-                "parent": self.parent_var.get(),
-                "semiMajorAxis": float(self.sma_var.get() or 0),
-                "eccentricity": float(self.ecc_var.get() or 0),
-                "argumentOfPeriapsis": float(self.argp_var.get() or 0),
-                "direction": int(self.direction_var.get() or 1)
+                "parent": self.vars["parent"].get(),
+                "semiMajorAxis": float(self.vars["semiMajorAxis"].get() or 0),
+                "eccentricity": float(self.vars["eccentricity"].get() or 0),
+                "argumentOfPeriapsis": float(self.vars["argumentOfPeriapsis"].get() or 0),
+                "direction": int(self.vars["direction"].get() or 1),
+                "inclination": float(self.vars["inclination"].get() or 0),
             }
         }
-

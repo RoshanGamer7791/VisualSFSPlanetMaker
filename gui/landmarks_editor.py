@@ -51,12 +51,16 @@ class LandmarksEditor:
                 self.landmark_entries.remove(lm)
                 break
 
-    def save(self):
-        self.planet_data["LANDMARKS"] = []
+    def get_data(self):
+        landmarks_list = []
+
         for lm in self.landmark_entries:
-            self.planet_data["LANDMARKS"].append({
+            landmarks_list.append({
                 "name": lm["name"].get(),
-                "angle": lm["angle"].get(),
-                "startAngle": lm["startAngle"].get(),
-                "endAngle": lm["endAngle"].get()
+                "angle": float(lm["angle"].get()),
+                "startAngle": float(lm["startAngle"].get()),
+                "endAngle": float(lm["endAngle"].get())
             })
+
+        return {"LANDMARKS": landmarks_list}
+

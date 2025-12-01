@@ -115,24 +115,46 @@ class TerrainEditor:
         }
 
     def get_data(self):
-        return {
-            "TERRAIN_DATA": {
-                "TERRAIN_TEXTURE_DATA": {
-                    "planetTexture": self.tex_planet.get(),
-                    "planetTextureCutout": float(self.cutout.get() or 1.0),
-                    "surfaceTexture_A": self.texture_a.get(),
-                    "surfaceTextureSize_A": {
-                        "x": float(self.tx_a_x.get() or 0),
-                        "y": float(self.tx_a_y.get() or 0)
-                    },
-                    "surfaceTexture_B": self.texture_b.get(),
-                    "surfaceTextureSize_B": {
-                        "x": float(self.tx_b_x.get() or 0),
-                        "y": float(self.tx_b_y.get() or 0)
-                    },
-                },
-                "verticeSize": float(self.vertex.get() or 4.0),
-                "collider": True,
-                "flatZones": []
-            }
+        terrain = {}
+        tex = {}
+
+        tex["planetTexture"] = self.planetTexture.get()
+        tex["planetTextureCutout"] = float(self.planetTextureCutout.get())
+
+        tex["surfaceTexture_A"] = self.surfaceTexture_A.get()
+        tex["surfaceTexture_B"] = self.surfaceTexture_B.get()
+        tex["terrainTexture_C"] = self.terrainTexture_C.get()
+
+        tex["surfaceTextureSize_A"] = {
+            "x": self.surfaceTextureSize_A_x.get(),
+            "y": self.surfaceTextureSize_A_y.get()
         }
+        tex["surfaceTextureSize_B"] = {
+            "x": self.surfaceTextureSize_B_x.get(),
+            "y": self.surfaceTextureSize_B_y.get()
+        }
+        tex["terrainTextureSize_C"] = {
+            "x": self.terrainTextureSize_C_x.get(),
+            "y": self.terrainTextureSize_C_y.get()
+        }
+
+        tex["surfaceLayerSize"] = self.surfaceLayerSize.get()
+        tex["collider"] = self.collider.get()
+
+        # Flat Zones
+        flat_list = []
+        for f in self.flatZone_entries:
+            flat_list.append({
+                    "height": f["height"].get(),
+                    "angle": f["angle"].get(),
+                    "width": f["width"].get(),
+                    "transition": f["transition"].get()
+                })
+
+        terrain["TERRAIN_TEXTURE_DATA"] = tex
+        terrain["flatZones"] = flat_list
+        terrain["terrainFormulaDifficulties"] = {
+            "Normal": self.terrainFormulaText.get("0.0", "end").strip().split("\n")
+        }
+
+        return {"TERRAIN_DATA": terrain}
