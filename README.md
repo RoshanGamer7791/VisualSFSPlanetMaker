@@ -2,6 +2,8 @@
 2. Launch main.py
 3. Enjoy!
 
+Beware of bugs. This has not offically been released
+
 ## Credits
 
 * roshan (RoshanGmaer7791) - Python version Maker
