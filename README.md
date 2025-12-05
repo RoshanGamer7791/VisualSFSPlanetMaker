@@ -6,5 +6,5 @@ Beware of bugs. This has not offically been released
 
 ## Credits
 
-* roshan (RoshanGmaer7791) - Python version Maker
+* roshan (RoshanGamer7791) - Python version Maker
 * sddcat - Website version maker
