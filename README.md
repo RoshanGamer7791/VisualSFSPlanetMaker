@@ -2,7 +2,8 @@
 2. Launch main.py
 3. Enjoy!
 
-Beware of bugs. This has not offically been released
+Beware of bugs. This has not offically been released  
+Releasing Soon :)
 
 ## Credits
 
