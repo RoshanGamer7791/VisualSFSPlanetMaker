@@ -1,180 +1,185 @@
 import customtkinter as ctk
-import json
-from tkinter import messagebox
 
+class AtmosphereEditor:
+    def __init__(self, parent, planet_data=None):
+        self.planet_data = planet_data or {}
+        self.frame = ctk.CTkFrame(parent)
+        self.frame.pack(fill="both", expand=True)
 
-class AtmosphereEditor(ctk.CTkToplevel):
-    def __init__(self, master, data):
-        super().__init__(master)
-        self.title("Atmosphere Editor")
-        self.geometry("720x750")
+        # ------------------- Physics -------------------
+        atm_phys = self.planet_data.get("ATMOSPHERE_PHYSICS_DATA", {})
+        self.height = ctk.DoubleVar(value=atm_phys.get("height", 30000.0))
+        self.density = ctk.DoubleVar(value=atm_phys.get("density", 0.005))
+        self.curve = ctk.DoubleVar(value=atm_phys.get("curve", 10.0))
+        self.parachuteMultiplier = ctk.DoubleVar(value=atm_phys.get("parachuteMultiplier", 1.0))
+        self.upperAtmosphere = ctk.DoubleVar(value=atm_phys.get("upperAtmosphere", 0.333))
+        self.shockwaveIntensity = ctk.DoubleVar(value=atm_phys.get("shockwaveIntensity", 1.0))
+        self.minHeatingVelocityMultiplier = ctk.DoubleVar(value=atm_phys.get("minHeatingVelocityMultiplier", 1.0))
 
-        self.data = data
+        # ------------------- Gradient -------------------
+        visuals = self.planet_data.get("ATMOSPHERE_VISUALS_DATA", {})
+        grad = visuals.get("GRADIENT", {})
+        self.gradientTexture = ctk.StringVar(value=grad.get("texture", "Atmo_Earth"))
+        self.gradientHeight = ctk.DoubleVar(value=grad.get("height", 45000.0))
+        self.gradientPositionZ = ctk.DoubleVar(value=grad.get("positionZ", 4000))
 
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+        # ------------------- Clouds -------------------
+        clouds = visuals.get("CLOUDS", {})
+        self.cloudTexture = ctk.StringVar(value=clouds.get("texture", "Earth_Clouds"))
+        self.cloudStartHeight = ctk.DoubleVar(value=clouds.get("startHeight", 1200.0))
+        self.cloudWidth = ctk.DoubleVar(value=clouds.get("width", 40845.87))
+        self.cloudHeight = ctk.DoubleVar(value=clouds.get("height", 36000.0))
+        self.cloudAlpha = ctk.DoubleVar(value=clouds.get("alpha", 0.1))
+        self.cloudVelocity = ctk.DoubleVar(value=clouds.get("velocity", 2.0))
+
+        # ------------------- Fog -------------------
+        fog = visuals.get("FOG", {}).get("keys", [])
+        self.fogKeys = []
+        self.fogFrame = ctk.CTkFrame(self.frame)
+        self.fogFrame.grid(row=20, column=0, columnspan=2, sticky="nsew")
+        self.fogRowStart = 0
+
+        for key in fog:
+            color = key.get("color", {})
+            self.add_fog_key({
+                "r": color.get("r", 0.647058845),
+                "g": color.get("g", 0.848739564),
+                "b": color.get("b", 1.0),
+                "a": color.get("a", 0.416),
+                "distance": key.get("distance", 30000.0)
+            })
+
+        # Add button to add more fog keys
+        self.addFogButton = ctk.CTkButton(self.frame, text="Add Fog Key", command=self.add_fog_key)
+        self.addFogButton.grid(row=99, column=0, columnspan=2, pady=10)
 
         self.build_ui()
 
-
-    # -----------------------------------------------------
-    # UI Builder
-    # -----------------------------------------------------
     def build_ui(self):
-        self.scroll = ctk.CTkScrollableFrame(self)
-        self.scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        row = 0
+        # Physics
+        for label, var in [
+            ("Atmosphere Height", self.height),
+            ("Density", self.density),
+            ("Curve", self.curve),
+            ("Parachute Multiplier", self.parachuteMultiplier),
+            ("Upper Atmosphere", self.upperAtmosphere),
+            ("Shockwave Intensity", self.shockwaveIntensity),
+            ("Min Heating Velocity Multiplier", self.minHeatingVelocityMultiplier)
+        ]:
+            ctk.CTkLabel(self.frame, text=label).grid(row=row, column=0)
+            ctk.CTkEntry(self.frame, textvariable=var).grid(row=row, column=1)
+            row += 1
 
-        ctk.CTkLabel(self.scroll, text="ATMOSPHERE PHYSICS", font=("Arial", 18)).pack(pady=10)
+        # Gradient
+        for label, var in [
+            ("Gradient Texture", self.gradientTexture),
+            ("Gradient Height", self.gradientHeight),
+            ("Gradient PositionZ", self.gradientPositionZ)
+        ]:
+            ctk.CTkLabel(self.frame, text=label).grid(row=row, column=0)
+            ctk.CTkEntry(self.frame, textvariable=var).grid(row=row, column=1)
+            row += 1
 
-        phys = self.data["ATMOSPHERE_PHYSICS_DATA"]
-        self.height = self._entry("Height", phys.get("height"))
-        self.density = self._entry("Density", phys.get("density"))
-        self.curve = self._entry("Curve", phys.get("curve"))
-        self.parachuteMultiplier = self._entry("Parachute Multiplier", phys.get("parachuteMultiplier"))
-        self.upperAtmosphere = self._entry("Upper Atmosphere", phys.get("upperAtmosphere"))
-        self.shockwaveIntensity = self._entry("Shockwave Intensity", phys.get("shockwaveIntensity"))
-        self.minHeatingVelocity = self._entry("Min Heating Velocity Multiplier", phys.get("minHeatingVelocityMultiplier"))
+        # Clouds
+        ctk.CTkLabel(self.frame, text="--- Clouds ---").grid(row=row, column=0, columnspan=2)
+        row += 1
+        for label, var in [
+            ("Texture", self.cloudTexture),
+            ("Start Height", self.cloudStartHeight),
+            ("Width", self.cloudWidth),
+            ("Height", self.cloudHeight),
+            ("Alpha", self.cloudAlpha),
+            ("Velocity", self.cloudVelocity)
+        ]:
+            ctk.CTkLabel(self.frame, text=label).grid(row=row, column=0)
+            ctk.CTkEntry(self.frame, textvariable=var).grid(row=row, column=1)
+            row += 1
 
-        # dict textboxes
-        self.curveScale_text = self._textbox("curveScale", phys.get("curveScale", {}))
-        self.heightDifficulty_text = self._textbox("heightDifficultyScale", phys.get("heightDifficultyScale", {}))
+        # Fog label
+        ctk.CTkLabel(self.frame, text="--- Fog Keys ---").grid(row=row, column=0, columnspan=2)
+        row += 1
 
-        # -----------------------------------------------------
-        # VISUALS
-        # -----------------------------------------------------
-        ctk.CTkLabel(self.scroll, text="ATMOSPHERE VISUALS", font=("Arial", 18)).pack(pady=10)
+        # Build initial fog keys
+        for key in self.fogKeys:
+            self.render_fog_key(key)
 
-        visuals = self.data["ATMOSPHERE_VISUALS_DATA"]
+    def add_fog_key(self, default=None):
+        if default is None:
+            default = {"r":0.647058845,"g":0.848739564,"b":1.0,"a":0.416,"distance":30000.0}
+        key = {
+            "r": ctk.DoubleVar(value=default["r"]),
+            "g": ctk.DoubleVar(value=default["g"]),
+            "b": ctk.DoubleVar(value=default["b"]),
+            "a": ctk.DoubleVar(value=default["a"]),
+            "distance": ctk.DoubleVar(value=default["distance"])
+        }
+        self.fogKeys.append(key)
+        self.render_fog_key(key)
 
-        # --- GRADIENT ---
-        grad = visuals["GRADIENT"]
-        self.gradient_positionZ = self._entry("Gradient positionZ (INTEGER)", grad.get("positionZ"))
-        self.gradient_height = self._entry("Gradient Height", grad.get("height"))
-        self.gradient_texture = self._entry("Gradient Texture", grad.get("texture"))
+    def remove_fog_key(self, key):
+        for widget in key["widgets"]:
+            widget.destroy()
+        self.fogKeys.remove(key)
 
-        # --- CLOUDS ---
-        clouds = visuals["CLOUDS"]
-        self.cloud_tex = self._entry("Cloud Texture", clouds.get("texture"))
-        self.cloud_startHeight = self._entry("Cloud Start Height", clouds.get("startHeight"))
-        self.cloud_width = self._entry("Cloud Width", clouds.get("width"))
-        self.cloud_height = self._entry("Cloud Height", clouds.get("height"))
-        self.cloud_alpha = self._entry("Cloud Alpha", clouds.get("alpha"))
-        self.cloud_velocity = self._entry("Cloud Velocity", clouds.get("velocity"))
+    def render_fog_key(self, key):
+        key["widgets"] = []
+        row = self.fogRowStart
+        ctk.CTkLabel(self.fogFrame, text=f"Fog Key {len(self.fogKeys)}").grid(row=row, column=0, columnspan=2)
+        key["widgets"].append(self.fogFrame)
+        row += 1
+        for label, var in [("R", key["r"]), ("G", key["g"]), ("B", key["b"]), ("A", key["a"]), ("Distance", key["distance"])]:
+            lbl = ctk.CTkLabel(self.fogFrame, text=label)
+            lbl.grid(row=row, column=0)
+            entry = ctk.CTkEntry(self.fogFrame, textvariable=var)
+            entry.grid(row=row, column=1)
+            key["widgets"].extend([lbl, entry])
+            row += 1
+        # Remove button
+        btn = ctk.CTkButton(self.fogFrame, text="Remove", command=lambda k=key: self.remove_fog_key(k))
+        btn.grid(row=row, column=0, columnspan=2, pady=5)
+        key["widgets"].append(btn)
+        self.fogRowStart = row + 1
 
-        # --- FOG ---
-        ctk.CTkLabel(self.scroll, text="Fog Keys", font=("Arial", 15)).pack(pady=5)
-
-        self.fog_entries = []
-        for key in visuals["FOG"].get("keys", []):
-            self._add_fog_key(key)
-
-        ctk.CTkButton(self.scroll, text="Add Fog Key", command=self._add_empty_fog).pack(pady=5)
-
-
-    # -----------------------------------------------------
-    # Helper methods
-    # -----------------------------------------------------
-    def _entry(self, label, value):
-        frame = ctk.CTkFrame(self.scroll)
-        frame.pack(fill="x", pady=4)
-
-        ctk.CTkLabel(frame, text=label).pack(side="left", padx=5)
-        ent = ctk.CTkEntry(frame)
-        ent.pack(side="right", fill="x", expand=True, padx=5)
-        ent.insert(0, str(value))
-
-        return ent
-
-    def _textbox(self, label, data_dict):
-        frame = ctk.CTkFrame(self.scroll)
-        frame.pack(fill="x", pady=4)
-
-        ctk.CTkLabel(frame, text=label).pack(anchor="w", padx=5)
-
-        box = ctk.CTkTextbox(frame, height=80)
-        box.pack(fill="x", padx=5)
-        box.insert("0.0", json.dumps(data_dict, indent=2))
-
-        return box
-
-    def _add_fog_key(self, key):
-        frame = ctk.CTkFrame(self.scroll)
-        frame.pack(fill="x", pady=4)
-
-        color = key["color"]
-        r = self._entry("R", color["r"])
-        g = self._entry("G", color["g"])
-        b = self._entry("B", color["b"])
-        a = self._entry("A", color["a"])
-        dist = self._entry("Distance", key["distance"])
-
-        self.fog_entries.append((r, g, b, a, dist))
-
-    def _add_empty_fog(self):
-        self._add_fog_key({
-            "color": {"r": 1, "g": 1, "b": 1, "a": 1},
-            "distance": 0
-        })
-
-
-    # -----------------------------------------------------
-    # get_data()
-    # -----------------------------------------------------
     def get_data(self):
-        try:
-            positionZ_int = int(self.gradient_positionZ.get())
-        except:
-            messagebox.showerror("Error", "positionZ must be an INTEGER!")
-            return None
-
-        # parse dicts
-        try:
-            curveScale_dict = json.loads(self.curveScale_text.get("0.0", "end"))
-            heightDifficulty_dict = json.loads(self.heightDifficulty_text.get("0.0", "end"))
-        except:
-            messagebox.showerror("Error", "curveScale or heightDifficultyScale must contain valid JSON!")
-            return None
-
-        fog_list = []
-        for r, g, b, a, dist in self.fog_entries:
-            fog_list.append({
-                "color": {
-                    "r": float(r.get()),
-                    "g": float(g.get()),
-                    "b": float(b.get()),
-                    "a": float(a.get())
-                },
-                "distance": float(dist.get())
-            })
-
         return {
             "ATMOSPHERE_PHYSICS_DATA": {
-                "height": float(self.height.get()),
-                "density": float(self.density.get()),
-                "curve": float(self.curve.get()),
-                "curveScale": curveScale_dict,
-                "parachuteMultiplier": float(self.parachuteMultiplier.get()),
-                "upperAtmosphere": float(self.upperAtmosphere.get()),
-                "heightDifficultyScale": heightDifficulty_dict,
-                "shockwaveIntensity": float(self.shockwaveIntensity.get()),
-                "minHeatingVelocityMultiplier": float(self.minHeatingVelocity.get()),
+                "height": self.height.get(),
+                "density": self.density.get(),
+                "curve": self.curve.get(),
+                "curveScale": {},
+                "parachuteMultiplier": self.parachuteMultiplier.get(),
+                "upperAtmosphere": self.upperAtmosphere.get(),
+                "heightDifficultyScale": {},
+                "shockwaveIntensity": self.shockwaveIntensity.get(),
+                "minHeatingVelocityMultiplier": self.minHeatingVelocityMultiplier.get()
             },
             "ATMOSPHERE_VISUALS_DATA": {
                 "GRADIENT": {
-                    "positionZ": positionZ_int,
-                    "height": float(self.gradient_height.get()),
-                    "texture": self.gradient_texture.get()
+                    "positionZ": self.gradientPositionZ.get(),
+                    "height": self.gradientHeight.get(),
+                    "texture": self.gradientTexture.get()
                 },
                 "CLOUDS": {
-                    "texture": self.cloud_tex.get(),
-                    "startHeight": float(self.cloud_startHeight.get()),
-                    "width": float(self.cloud_width.get()),
-                    "height": float(self.cloud_height.get()),
-                    "alpha": float(self.cloud_alpha.get()),
-                    "velocity": float(self.cloud_velocity.get())
+                    "texture": self.cloudTexture.get(),
+                    "startHeight": self.cloudStartHeight.get(),
+                    "width": self.cloudWidth.get(),
+                    "height": self.cloudHeight.get(),
+                    "alpha": self.cloudAlpha.get(),
+                    "velocity": self.cloudVelocity.get()
                 },
                 "FOG": {
-                    "keys": fog_list
+                    "keys": [
+                        {
+                            "color": {
+                                "r": k["r"].get(),
+                                "g": k["g"].get(),
+                                "b": k["b"].get(),
+                                "a": k["a"].get()
+                            },
+                            "distance": k["distance"].get()
+                        } for k in self.fogKeys
+                    ]
                 }
             }
         }

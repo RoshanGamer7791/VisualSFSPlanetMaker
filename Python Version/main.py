@@ -3,6 +3,8 @@ import json
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 # Import editors
 from gui.planet_properties import PlanetPropertiesEditor
 from gui.post_properties import PostProcessingEditor
@@ -79,7 +81,7 @@ class PlanetMakerApp(tk.Tk):
         if not path:
             return
 
-        self.planet_data = load_planet_file(path)
+        self.planet_data = choose_and_load_planet(path)
         self.file_path = path
 
         # Update all editors
@@ -109,10 +111,11 @@ class PlanetMakerApp(tk.Tk):
         # Gather data from all tabs
         planet_data = self.collect_editor_data()
 
-        exporter = SFSExporter(planet_data)
-        exporter.export_planet(save_path)
+        exporter = SFSExporter()
+        exporter.export_planet(save_path, planet_data)
 
         messagebox.showinfo("Export Complete", f"Planet saved to:\n{save_path}")
+
 
     # ---------------------------------------------
     # COLLECT DATA FROM EDITORS
@@ -126,7 +129,7 @@ class PlanetMakerApp(tk.Tk):
         data.update(self.orbit_editor_tab.get_data())
         data.update(self.terrain_editor_tab.get_data())
         data.update(self.landmarks_editor_tab.get_data())
-        data.update(self.heightmap_tab.get_data())
+        #Removed heightmaps
 
         return data
 
