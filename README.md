@@ -3,7 +3,8 @@
 3. Enjoy!
 
 Beware of bugs. This has not offically been released  
-Releasing Soon :)
+Unoffically Released  
+Offical Release date for python version: 13/12/25
 
 ## Credits
 
