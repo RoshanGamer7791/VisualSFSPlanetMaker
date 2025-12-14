@@ -4,7 +4,7 @@
 
 Beware of bugs. This has not offically been released  
 Unoffically Released  
-Offical Release date for python version: 13/12/25
+Offical Release date for python version: 20/12/25
 
 ## Credits
 
