@@ -3,8 +3,8 @@
 3. Enjoy!
 
 Beware of bugs. This has not offically been released  
-Unoffically Released  
-Offical Release date for python version: 20/12/25
+Offically Released :)
+Awaiting update for SFS 1.6
 
 ## Credits
 
